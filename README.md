@@ -134,6 +134,35 @@ module "vpc_endpoints" {
 }
 ```
 
+### EKS Private Workload Endpoint Set
+
+```hcl
+module "vpc_endpoints" {
+  source = "git::http://gitlab.midhtech.local/cloud_team/tf-modules/aws/network/tf-aws-vpc-endpoints.git?ref=v1.0.0"
+
+  vpc_id = module.vpc.vpc_id
+
+  enable_eks_private_endpoint_set = true
+  private_subnet_ids              = module.vpc.private_subnet_ids
+  private_route_table_ids         = module.vpc.private_route_table_ids
+
+  interface_endpoint_ingress_cidr_blocks = [
+    module.vpc.vpc_cidr_block
+  ]
+
+  tags = {
+    Name               = "dev-midh-eks"
+    Environment        = "dev"
+    Owner              = "platform-team"
+    CostCenter         = "shared-services"
+    Application        = "midh-eks"
+    DataClassification = "internal"
+  }
+}
+```
+
+The standard EKS endpoint set can create private endpoints for S3, ECR API, ECR Docker, CloudWatch Logs, STS, EC2, SSM, SSM Messages, EC2 Messages, KMS, Secrets Manager, and Elastic Load Balancing.
+
 ---
 
 ## 8. Outputs
@@ -142,6 +171,7 @@ module "vpc_endpoints" {
 - `service_names`
 - `dns_entries`
 - `route_table_ids`
+- `standard_eks_private_endpoint_keys`
 
 ---
 

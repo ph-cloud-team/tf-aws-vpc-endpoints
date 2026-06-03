@@ -57,7 +57,7 @@ variable "endpoints" {
 variable "create_interface_endpoint_security_group" {
   description = "Create a security group for Interface VPC endpoints when endpoint-specific security_group_ids are not provided."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "interface_endpoint_security_group_name" {
@@ -70,14 +70,70 @@ variable "interface_endpoint_ingress_cidr_blocks" {
   description = "CIDR blocks allowed to connect to Interface endpoints on TCP/443 when the module-managed security group is enabled."
   type        = list(string)
   default     = []
+}
+
+variable "interface_endpoint_ingress_security_group_ids" {
+  description = "Security group IDs allowed to connect to Interface endpoints on TCP/443 when the module-managed security group is enabled."
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_eks_private_endpoint_set" {
+  description = "Create the standard private endpoint set commonly required by EKS private workloads and platform automation."
+  type        = bool
+  default     = false
+}
+
+variable "eks_private_endpoint_services" {
+  description = "Standard private endpoint services to create when enable_eks_private_endpoint_set is true."
+  type        = set(string)
+  default = [
+    "s3",
+    "ecr_api",
+    "ecr_dkr",
+    "logs",
+    "sts",
+    "ec2",
+    "ssm",
+    "ssmmessages",
+    "ec2messages",
+    "kms",
+    "secretsmanager",
+    "elasticloadbalancing"
+  ]
 
   validation {
-    condition = (
-      !var.create_interface_endpoint_security_group ||
-      length(var.interface_endpoint_ingress_cidr_blocks) > 0
-    )
-    error_message = "interface_endpoint_ingress_cidr_blocks must contain at least one CIDR when create_interface_endpoint_security_group is true."
+    condition = alltrue([
+      for service in var.eks_private_endpoint_services :
+      contains([
+        "s3",
+        "ecr_api",
+        "ecr_dkr",
+        "logs",
+        "sts",
+        "ec2",
+        "ssm",
+        "ssmmessages",
+        "ec2messages",
+        "kms",
+        "secretsmanager",
+        "elasticloadbalancing"
+      ], service)
+    ])
+    error_message = "eks_private_endpoint_services contains an unsupported service key."
   }
+}
+
+variable "private_subnet_ids" {
+  description = "Private subnet IDs used by the standard Interface endpoint set."
+  type        = list(string)
+  default     = []
+}
+
+variable "private_route_table_ids" {
+  description = "Private route table IDs used by the standard Gateway endpoint set."
+  type        = list(string)
+  default     = []
 }
 
 variable "tags" {

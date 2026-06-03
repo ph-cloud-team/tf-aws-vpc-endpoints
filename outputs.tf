@@ -46,3 +46,8 @@ output "interface_endpoint_security_group_id" {
   description = "Module-managed Interface endpoint security group ID, or null when not created."
   value       = local.interface_endpoint_security_group_enabled ? aws_security_group.interface_endpoint[0].id : null
 }
+
+output "standard_eks_private_endpoint_keys" {
+  description = "Standard EKS private endpoint keys enabled by this module invocation."
+  value       = keys(local.enabled_eks_private_endpoints)
+}
